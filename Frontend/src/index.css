@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: #111111;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  background-color: #111111;
+  color: #ffffff;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background-color: #e91e63;
+  color: #ffffff;
+}
