@@ -72,14 +72,24 @@ export default function ReportDetailPage() {
           ← Dashboard
         </button>
 
-        <button
-          type="button"
-          onClick={handleDownload}
-          disabled={downloading || !report}
-          className="rounded-xl bg-[#e91e63] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#c2185b] disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {downloading ? 'Downloading...' : 'Download PDF'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(`/reports/${id}/interview`)}
+            disabled={!report}
+            className="font-mono-meta border border-[#e91e63] px-5 py-3 text-[11px] tracking-[0.2em] text-[#e91e63] transition-colors hover:bg-[#e91e63] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            PRACTICE INTERVIEW →
+          </button>
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={downloading || !report}
+            className="rounded-xl bg-[#e91e63] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#c2185b] disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {downloading ? 'Downloading...' : 'Download PDF'}
+          </button>
+        </div>
       </div>
 
       <div className="mb-5 space-y-3">

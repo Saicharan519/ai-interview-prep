@@ -1,11 +1,19 @@
 import mongoose from 'mongoose';
+import { logger } from '../utils/logger.js';
+import { env } from './env.js';
 
 export async function connectDB() {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('MongoDB connected successfully');
-  } catch (error) {
-    console.error('MongoDB connection failed:', error);
-    process.exit(1);
-  }
+  await mongoose.connect(env.MONGODB_URI, {
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  });
+
+  logger.info({ uri: env.MONGODB_URI.replace(/\/\/[^@]+@/, '//***@') }, 'MongoDB connected');
+
+  mongoose.connection.on('disconnected', () =>
+    logger.warn('MongoDB disconnected')
+  );
+  mongoose.connection.on('error', (err) =>
+    logger.error({ err }, 'MongoDB connection error')
+  );
 }

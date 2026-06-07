@@ -1,26 +1,13 @@
 import { useState } from 'react';
 import AccordionQuestion from './AccordionQuestion';
 import RoadmapSection from './RoadmapSection';
-import ScoreRing from './ScoreRing';
-import SkillGapTags from './SkillGapTags';
+import ScoreBreakdown from './ScoreBreakdown';
 
 const sections = [
   { id: 'technical', label: 'Technical Questions', icon: '<>' },
   { id: 'behavioral', label: 'Behavioral Questions', icon: '💬' },
   { id: 'roadmap', label: 'Road Map', icon: '🗺️' },
 ];
-
-function getMatchLabel(score) {
-  if (score >= 75) {
-    return 'Strong match for this role';
-  }
-
-  if (score >= 50) {
-    return 'Moderate match';
-  }
-
-  return 'Low match';
-}
 
 function QuestionSection({ title, questions }) {
   const safeQuestions = Array.isArray(questions) ? questions : [];
@@ -50,10 +37,9 @@ function QuestionSection({ title, questions }) {
 
 export default function ReportDetail({ report }) {
   const [activeSection, setActiveSection] = useState('technical');
-  const matchScore = report?.matchScore || 0;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[12rem_1fr_16rem]">
+    <div className="grid gap-6 lg:grid-cols-[12rem_1fr_18rem]">
       <aside className="lg:sticky lg:top-24 lg:self-start">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#6b7280]">
           Sections
@@ -114,22 +100,7 @@ export default function ReportDetail({ report }) {
         )}
       </main>
 
-      <aside className="space-y-6 rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-6 lg:sticky lg:top-24 lg:self-start">
-        <div className="text-center">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[#6b7280]">
-            Match Score
-          </p>
-          <ScoreRing score={matchScore} label="Match Score" size="lg" />
-          <p className="mt-4 text-sm font-semibold text-white">
-            {getMatchLabel(matchScore)}
-          </p>
-        </div>
-
-        <div className="h-px bg-[#2a2a2a]" />
-        <SkillGapTags skillGaps={report?.skillGaps} />
-        <div className="h-px bg-[#2a2a2a]" />
-        <ScoreRing score={report?.atsScore || 0} label="ATS Score" size="sm" />
-      </aside>
+      <ScoreBreakdown report={report} />
     </div>
   );
 }

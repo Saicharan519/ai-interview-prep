@@ -6,37 +6,40 @@ import {
 
 export default function useReports() {
   const [reports, setReports] = useState([]);
+  const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchReports = useCallback(async () => {
+  const fetchReports = useCallback(async (page = 1, limit = 12) => {
     setLoading(true);
     setError(null);
 
     try {
-      const data = await getReports();
-      setReports(data.reports || []);
+      const data = await getReports(page, limit);
+      setReports(data.reports ?? []);
+      setPagination(data.pagination ?? null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load reports');
+      setError(err.response?.data?.message ?? 'Failed to load reports');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const deleteReport = useCallback(async (id) => {
-    const previousReports = reports;
-    setReports((currentReports) =>
-      currentReports.filter((report) => report._id !== id)
-    );
-    setError(null);
+  const deleteReport = useCallback(
+    async (id) => {
+      const snapshot = reports;
+      setReports((prev) => prev.filter((r) => r._id !== id));
+      setError(null);
 
-    try {
-      await deleteReportRequest(id);
-    } catch (err) {
-      setReports(previousReports);
-      setError(err.response?.data?.message || 'Failed to delete report');
-    }
-  }, [reports]);
+      try {
+        await deleteReportRequest(id);
+      } catch (err) {
+        setReports(snapshot);
+        setError(err.response?.data?.message ?? 'Failed to delete report');
+      }
+    },
+    [reports]
+  );
 
-  return { reports, loading, error, fetchReports, deleteReport };
+  return { reports, pagination, loading, error, fetchReports, deleteReport };
 }

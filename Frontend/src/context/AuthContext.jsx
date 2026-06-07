@@ -5,8 +5,8 @@ export const AuthContext = createContext(null);
 
 function getStoredUser() {
   try {
-    const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
+    const raw = localStorage.getItem('user');
+    return raw ? JSON.parse(raw) : null;
   } catch {
     localStorage.removeItem('user');
     return null;
@@ -25,7 +25,13 @@ export default function AuthProvider({ children }) {
   }
 
   function logout() {
-    logoutApi().catch(() => {});
+    // Fire-and-forget the server-side blacklist call.
+    // We still clear local state immediately so the UX is instant.
+    // Log failures so they don't go completely unnoticed.
+    logoutApi().catch((err) => {
+      console.error('[AuthContext] Server-side logout failed:', err?.message ?? err);
+    });
+
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
@@ -33,13 +39,10 @@ export default function AuthProvider({ children }) {
   }
 
   const value = useMemo(
-    () => ({
-      user,
-      token,
-      login,
-      logout,
-      isAuthenticated: Boolean(token),
-    }),
+    () => ({ user, token, login, logout, isAuthenticated: Boolean(token) }),
+    // login and logout reference stable state setters so they don't need to be
+    // in the dep array, but token and user determine the derived isAuthenticated.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [user, token]
   );
 

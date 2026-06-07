@@ -3,6 +3,7 @@ import Navbar from './components/common/Navbar';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AuthProvider from './context/AuthContext';
 import DashboardPage from './pages/DashboardPage';
+import InterviewPage from './pages/InterviewPage';
 import LoginPage from './pages/LoginPage';
 import NewReportPage from './pages/NewReportPage';
 import RegisterPage from './pages/RegisterPage';
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/reports/new" element={<NewReportPage />} />
           <Route path="/reports/:id" element={<ReportDetailPage />} />
+          <Route path="/reports/:id/interview" element={<InterviewPage />} />
         </Route>
       </Routes>
     </AuthProvider>

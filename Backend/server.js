@@ -1,29 +1,44 @@
-// MUST call dotenv.config() as the very first line before any other imports
-import dotenv from 'dotenv';
-dotenv.config({ override: true });
+// 'dotenv/config' must be the very first import so process.env is populated
+// before any other module reads it. In ESM, sibling imports are evaluated in
+// order, so placing this first guarantees it runs before env.js validates.
+import 'dotenv/config';
 
+import mongoose from 'mongoose';
+import { env } from './src/config/env.js';
 import { connectDB } from './src/config/db.js';
+import { logger } from './src/utils/logger.js';
 import app from './app.js';
 
-const PORT = process.env.PORT || 5000;
-const geminiKey = process.env.GEMINI_API_KEY || '';
+async function start() {
+  await connectDB();
 
-async function startServer() {
-  try {
-    // Connect to MongoDB
-    await connectDB();
+  const server = app.listen(env.PORT, () => {
+    logger.info({ port: env.PORT, env: env.NODE_ENV }, 'Server started');
+  });
 
-    // Start Express server
-    app.listen(PORT, () => {
-      console.log(`Server running at http://localhost:${PORT}`);
-      console.log(
-        `Gemini key loaded: ${geminiKey.slice(0, 6)}...${geminiKey.slice(-4)}`
-      );
+  // Graceful shutdown — allows in-flight requests to complete before exiting.
+  // Kubernetes and other orchestrators send SIGTERM before force-killing.
+  async function shutdown(signal) {
+    logger.info({ signal }, 'Shutdown signal received');
+
+    server.close(async () => {
+      await mongoose.connection.close();
+      logger.info('HTTP server and DB connection closed — exiting');
+      process.exit(0);
     });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
+
+    // Force-exit if graceful shutdown takes too long
+    setTimeout(() => {
+      logger.error('Graceful shutdown timed out — forcing exit');
+      process.exit(1);
+    }, 10_000).unref();
   }
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
-startServer();
+start().catch((err) => {
+  logger.error({ err }, 'Failed to start server');
+  process.exit(1);
+});

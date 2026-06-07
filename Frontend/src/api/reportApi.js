@@ -7,8 +7,8 @@ export async function createReport(formData) {
   return response.data;
 }
 
-export async function getReports() {
-  const response = await axiosInstance.get('/api/reports');
+export async function getReports(page = 1, limit = 12) {
+  const response = await axiosInstance.get('/api/reports', { params: { page, limit } });
   return response.data;
 }
 
@@ -27,7 +27,6 @@ export async function downloadPdf(id) {
     responseType: 'blob',
   });
 
-  // Create a temporary object URL and anchor to trigger the browser download.
   const url = window.URL.createObjectURL(response.data);
   const link = document.createElement('a');
   link.href = url;

@@ -1,32 +1,29 @@
+import crypto from 'crypto';
+import path from 'path';
 import multer from 'multer';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { env } from '../config/env.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const ALLOWED_MIMETYPES = new Set([
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]);
 
-// Resolve upload directory relative to project root
-const uploadDir = process.env.UPLOAD_DIR || 'uploads';
+const ALLOWED_EXTENSIONS = new Set(['.pdf', '.docx']);
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Create unique filename with timestamp
-    const uniqueName = Date.now() + '-' + file.originalname;
-    cb(null, uniqueName);
+  destination: (_req, _file, cb) => cb(null, env.UPLOAD_DIR),
+  filename: (_req, file, cb) => {
+    // Use a random UUID for the stored filename to prevent path traversal
+    // and avoid collisions. The original name is preserved in file.originalname.
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${crypto.randomUUID()}${ext}`);
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  // Only allow PDF and DOCX files
-  const allowedMimetypes = [
-    'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  ];
+const fileFilter = (_req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
 
-  if (allowedMimetypes.includes(file.mimetype)) {
+  if (ALLOWED_MIMETYPES.has(file.mimetype) && ALLOWED_EXTENSIONS.has(ext)) {
     cb(null, true);
   } else {
     cb(new Error('Only PDF and DOCX files are allowed'), false);
@@ -36,7 +33,5 @@ const fileFilter = (req, file, cb) => {
 export const uploadMiddleware = multer({
   storage,
   fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB max
-  },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
 });
